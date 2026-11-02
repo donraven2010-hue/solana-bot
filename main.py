@@ -3,7 +3,7 @@ import json
 import websockets
 from duckduckgo_search import DDGS
 import requests
-from solana.rpc.api import Client
+from solana.rpc.async_api import AsyncClient
 from solders.keypair import Keypair
 
 # --- CONFIGURATION & RISK CAP ---
@@ -17,13 +17,12 @@ class AutonomousTradingDesk:
     def __init__(self, private_key_b58=None):
         if private_key_b58:
             self.keypair = Keypair.from_base58_string(private_key_b58)
-        self.solana_client = Client(RPC_URL)
+        self.solana_client = AsyncClient(RPC_URL)
 
     # Bot 3 & 4: News & Sentiment (Free Web Search)
     async def bot_news_and_sentiment(self, symbol):
         try:
             with DDGS() as ddgs:
-                # Executes real live web search on DuckDuckGo
                 results = list(ddgs.text(f"solana meme token {symbol}", max_results=3))
                 if len(results) > 0:
                     return {"news_found": True, "score": 85}
@@ -51,7 +50,6 @@ class AutonomousTradingDesk:
             print("Executioner (#7): Running in PAPER MODE (No wallet private key attached).")
             return "Paper Execution Success"
 
-        # Construct serialized transaction payload from Jupiter
         swap_payload = {
             "quoteResponse": quote_response,
             "userPublicKey": str(self.keypair.pubkey()),
@@ -66,7 +64,6 @@ class AutonomousTradingDesk:
     # Bot 2 & 1: Scout Listener & Chief Orchestrator Loop
     async def start_autonomous_loop(self):
         async with websockets.connect(PUMPPORTAL_WS) as ws:
-            # Subscribe to real-time pump.fun token creations
             await ws.send(json.dumps({"method": "subscribeNewToken"}))
             print("Scout (#2) & Chief (#1): Connected to live Solana mint stream (24/7 Autopilot)...")
 
@@ -88,9 +85,6 @@ class AutonomousTradingDesk:
                 if approved and sentiment["news_found"]:
                     print(f"Skeptic (#6): APPROVED ${symbol}. Bounded risk under $5 limit.")
                     print(f"Chief (#1): Signal verified! Passing order ticket to Bot #7...")
-                    # Execute On-Chain Swap via Jupiter API
-                    # quote = self.bot_charts_quote("So11111111111111111111111111111111111111112", mint, 100000000)
-                    # await self.bot_executioner_swap(quote)
                 else:
                     print(f"Skeptic (#6): BLOCKED ${symbol}. Reason: {reason}")
 
