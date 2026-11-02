@@ -1,0 +1,6 @@
+websockets
+duckduckgo_search
+requests
+solana
+solders
+base58
